@@ -72,7 +72,10 @@ module.exports = function() {
                     deferred.resolve();
                   }).
                 catch(function(err) {
-                    deferred.reject('checkUnoconv: ' + err);
+                    // The conversion functions still get a chance to run,
+                    // even if the listener isn't started successfully
+                    deferred.resolve();
+                    //deferred.reject('checkUnoconv: ' + err);
                   });
             }
           });
