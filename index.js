@@ -75,7 +75,7 @@ module.exports = function() {
                     deferred.reject('checkUnoconv: ' + err);
                   });
             }
-        });
+          });
 
         return deferred.promise;
       };
@@ -98,70 +98,76 @@ module.exports = function() {
     function _convertToText(path) {
         var deferred = q.defer();
     
-        tmp.tmpName(function(err, tmpPath) {
-            if (err) {
-              deferred.reject(err);
-            }
-    
-            // We're going by the file extension, for better
-            // or for worse
-            var extension = path.split('.').pop().toLowerCase();
-            var command;
-            var skip = false;
-        
-            switch(extension) {
-                case 'pdf':
-                    command = 'pdftotext ' + path + ' -';
-                    skip = true;
-                    break;
-                case 'doc':
-                case 'docx':
-                case 'odt':
-                case 'rtf':
-                    command = 'unoconv --doctype=document --format=text --output=' + tmpPath + ' ' + path;
-                    break;
-                default:
-                    command = 'cat ' + path;
-                    skip = true;
-                    break;
-            }
-        
-            if (command) {
-              // Write the converted document to a temporary file
-              exec(command, function(err, stdout, stderr) {
-                  if (err) {
-                    deferred.reject(err);
-                  }
-                  else {
-                    if (skip) {
-                      deferred.resolve(stdout);
-                    } 
-                    else {
-                      // Get the contents of the converted file
-                      var filename = path.split('/').pop().split('.'); 
-                      filename.pop();
-                      filename = filename.join('.') + '.txt';
-    
-                      exec('cat ' + tmpPath + '/' + filename,
-                        function(err, stdout, stderr) {
+        _checkUnoconv().
+            then(function() {
+                tmp.tmpName(function(err, tmpPath) {
+                    if (err) {
+                      deferred.reject(err);
+                    }
+            
+                    // We're going by the file extension, for better
+                    // or for worse
+                    var extension = path.split('.').pop().toLowerCase();
+                    var command;
+                    var skip = false;
+                
+                    switch(extension) {
+                        case 'pdf':
+                            command = 'pdftotext ' + path + ' -';
+                            skip = true;
+                            break;
+                        case 'doc':
+                        case 'docx':
+                        case 'odt':
+                        case 'rtf':
+                            command = 'unoconv --doctype=document --format=text --output=' + tmpPath + ' ' + path;
+                            break;
+                        default:
+                            command = 'cat ' + path;
+                            skip = true;
+                            break;
+                    }
+                
+                    if (command) {
+                      // Write the converted document to a temporary file
+                      exec(command, function(err, stdout, stderr) {
                           if (err) {
                             deferred.reject(err);
                           }
                           else {
-                            rimraf(tmpPath, function(err) {
-                              if (err) {
-                                deferred.reject(err);
-                              }
-                              else {
-                                deferred.resolve(stdout);
-                              }
-                            });
+                            if (skip) {
+                              deferred.resolve(stdout);
+                            } 
+                            else {
+                              // Get the contents of the converted file
+                              var filename = path.split('/').pop().split('.'); 
+                              filename.pop();
+                              filename = filename.join('.') + '.txt';
+            
+                              exec('cat ' + tmpPath + '/' + filename,
+                                function(err, stdout, stderr) {
+                                  if (err) {
+                                    deferred.reject(err);
+                                  }
+                                  else {
+                                    rimraf(tmpPath, function(err) {
+                                      if (err) {
+                                        deferred.reject(err);
+                                      }
+                                      else {
+                                        deferred.resolve(stdout);
+                                      }
+                                    });
+                                  }
+                                });
+                            }
                           }
                         });
                     }
-                  }
-                });
-            }
+                  });
+          }).
+        catch(function(err) {
+            deferred.reject(err);
           });
     
         return deferred.promise;
@@ -179,67 +185,74 @@ module.exports = function() {
      */
     function _convertToXml(path) {
         var deferred = q.defer();
-    
-        // A PDF gets directly converted to XML
-        var extension = path.split('.').pop().toLowerCase();
-        var command;
-    
-        if (extension === 'pdf') {
-          command = 'pdftohtml -stdout -xml ' + path;
-    
-          exec(command, function(err, stdout, stderr) {
-            if (err) {
-              deferred.reject(err);
-            }
-    
-            if (stderr) {
-              deferred.reject(err);
-            }
-            else {
-              deferred.resolve(stdout);
-            }
+
+        _checkUnoconv().
+            then(function() { 
+                // A PDF gets directly converted to XML
+                var extension = path.split('.').pop().toLowerCase();
+                var command;
+            
+                if (extension === 'pdf') {
+                  command = 'pdftohtml -stdout -xml ' + path;
+            
+                  exec(command, function(err, stdout, stderr) {
+                    if (err) {
+                      deferred.reject(err);
+                    }
+            
+                    if (stderr) {
+                      deferred.reject(err);
+                    }
+                    else {
+                      deferred.resolve(stdout);
+                    }
+                  });
+                }
+                else {
+                  tmp.tmpName(function(err, tmpPath) {
+                    if (err) {
+                      deferred.reject(err);
+                    }
+            
+                    command = 'unoconv --doctype=document --format=pdf --output=' + tmpPath + ' ' + path;
+            
+                    // Convert non-PDF document to PDF
+                    exec(command, function(err, stdout, stderr) {
+                      if (err) {
+                        deferred.reject(err);
+                      }
+                      else {
+                        // Convert PDF to XML
+                        var filename = path.split('/').pop().split('.'); 
+                        filename.pop();
+                        filename = filename.join('.') + '.pdf';
+            
+                        command = 'pdftohtml -stdout -xml ' + tmpPath + '/' + filename;
+            
+                        exec(command, function(err, stdout, stderr) {
+                          if (err) {
+                            deferred.reject(err);
+                          }
+                          else {
+                            rimraf(tmpPath, function(err) {
+                                if (err) {
+                                  deferred.reject(err);
+                                }
+                                else {
+                                  deferred.resolve(stdout);
+                                }
+                              });
+                          }
+                        });
+                      }
+                    });
+                  });
+                }
+          }).
+        catch(function(err) {
+            deferred.reject(err);
           });
-        }
-        else {
-          tmp.tmpName(function(err, tmpPath) {
-            if (err) {
-              deferred.reject(err);
-            }
-    
-            command = 'unoconv --doctype=document --format=pdf --output=' + tmpPath + ' ' + path;
-    
-            // Convert non-PDF document to PDF
-            exec(command, function(err, stdout, stderr) {
-              if (err) {
-                deferred.reject(err);
-              }
-              else {
-                // Convert PDF to XML
-                var filename = path.split('/').pop().split('.'); 
-                filename.pop();
-                filename = filename.join('.') + '.pdf';
-    
-                command = 'pdftohtml -stdout -xml ' + tmpPath + '/' + filename;
-    
-                exec(command, function(err, stdout, stderr) {
-                  if (err) {
-                    deferred.reject(err);
-                  }
-                  else {
-                    rimraf(tmpPath, function(err) {
-                        if (err) {
-                          deferred.reject(err);
-                        }
-                        else {
-                          deferred.resolve(stdout);
-                        }
-                      });
-                  }
-                });
-              }
-            });
-          });
-        }
+ 
         return deferred.promise;
       };
     exports.convertToXml = _convertToXml;
