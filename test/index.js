@@ -1,6 +1,7 @@
 var doc = require('..'),
     fs = require('fs'),
-    rimraf = require('rimraf');
+    rimraf = require('rimraf'),
+    exec = require('child_process').exec;
 
 /**
  * convertToText
@@ -43,14 +44,12 @@ exports.convertToText = {
               });
     },
 
-
     'Return text when given a Microsoft docx': function(test) {
         test.expect(1);
         doc.convertToText('test/docs/docx.docx').
             then(function(text) {
                     test.equal(text, 'This is supposed to be a Microsoft docx. ' + 
                                      'It was created with Google Docs.\n');
- 
                     test.done();
               }).
             catch(function(err) {
@@ -79,7 +78,6 @@ exports.convertToText = {
                     test.done();
               });
     },
-
 
     'Return text when given an OpenOffice ODT': function(test) {
         test.expect(1);
@@ -252,7 +250,6 @@ exports.convertToXml = {
               });
     },
 
-
     'Return XML when given a DOCX': function(test) {
         test.expect(1);
         doc.convertToXml('test/docs/docx.docx').
@@ -418,6 +415,50 @@ exports.convertToXml = {
                 test.done();
               });
     },
-
 };
 
+/**
+ * startUnoconvListener
+ */
+exports.startUnoconvListener = {
+
+    // Make sure there's no unoconv listener running
+    setUp: function(callback) {
+        var command = 'ps ax | grep unoconv | grep -v grep | awk \'{print $1}\'';
+        exec(command, function(err, stdout, stderr) {
+            command = 'kill ' + stdout;
+            exec(command, function(err, stdout, stderr) {
+                callback();
+              });
+          });
+    },
+
+    'Start an unoconv listener': function(test) {
+        test.expect(2);
+        var command = 'ps ax | grep unoconv | grep -v grep | awk \'{print $1}\'';
+        exec(command, function(err, stdout, stderr) {
+            test.equal(stdout, '');
+
+            doc.startUnoconvListener().
+                then(function() {
+                    test.ok(true);   
+                    test.done();                       
+                  }).
+                catch(function(err) {
+                    console.log(err);
+                    test.ok(false);   
+                    test.done();                       
+                  });
+          });
+    },
+};
+
+/*
+ * On load
+ */
+exports.onLoad = {
+
+    'Start an unoconv listener if no listener is running': function(test) {
+        test.done();
+    },
+};
