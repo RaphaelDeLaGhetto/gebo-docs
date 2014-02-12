@@ -14,7 +14,6 @@ exports.convertToText = {
             then(function(text) {
                     test.equal(text, 'This is supposed to be a Microsoft Word doc. ' +
                                      'It was created with LibreOffice.\n');
-
                     test.done();
               }).
             catch(function(err) {
@@ -419,6 +418,9 @@ exports.convertToXml = {
 
 /**
  * startUnoconvListener
+ *
+ * This test is placed here so that a listener
+ * will be running for the subsequent tests
  */
 exports.startUnoconvListener = {
 
@@ -453,12 +455,74 @@ exports.startUnoconvListener = {
     },
 };
 
-/*
- * On load
+/**
+ * checkUnoconv
  */
-exports.onLoad = {
+exports.checkUnoconv = {
 
-    'Start an unoconv listener if no listener is running': function(test) {
-        test.done();
+    // Make sure there's no unoconv listener running
+    setUp: function(callback) {
+        var command = 'ps ax | grep unoconv | grep -v grep | awk \'{print $1}\'';
+        exec(command, function(err, stdout, stderr) {
+            command = 'kill ' + stdout;
+            exec(command, function(err, stdout, stderr) {
+                callback();
+              });
+          });
+    },
+
+    'Start listener when necessary': function(test) {
+        test.expect(2);
+        // Verify that the listener is not running
+        var command = 'ps ax | grep unoconv | grep -v grep | awk \'{print $1}\'';
+        exec(command, function(err, stdout, stderr) {
+            test.equal(stdout, '');
+
+            doc.checkUnoconv().
+                then(function() {
+                    exec(command, function(err, stdout, stderr) {
+                        test.notEqual(stdout, '');   
+                        test.done();
+                      });
+                  }).
+                catch(function(err) {
+                    console.log(err);
+                    test.ok(false);   
+                    test.done();                       
+                  });
+          });
+    },
+
+    'Don\'t restart listener if it\'s already running': function(test) {
+        test.expect(2);
+        doc.startUnoconvListener().
+            then(function() {
+                // Get the unoconv PID
+                var command = 'ps ax | grep unoconv | grep -v grep | awk \'{print $1}\'';
+                exec(command, function(err, stdout, stderr) {
+                    var pid = stdout;
+                    test.notEqual(pid, '');
+        
+                    doc.checkUnoconv().
+                        then(function() {
+                            // Ensure the PID is the same
+                            // (otherwise a new instance was created)
+                            exec(command, function(err, stdout, stderr) {
+                                test.equal(pid, stdout);   
+                                test.done();                       
+                              });
+                          }).
+                        catch(function(err) {
+                            console.log(err);
+                            test.ok(false);   
+                            test.done();                       
+                          });
+                  });
+              }).
+            catch(function(err) {
+                console.log(err);
+                test.ok(false);
+                test.done();
+              });
     },
 };

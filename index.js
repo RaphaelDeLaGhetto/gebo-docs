@@ -9,11 +9,11 @@ var q = require('q'),
 module.exports = function() {
 
     /**
-     * Start a unoconv listener
+     * Start an unoconv listener
      *
      * @returns promise
      */
-    function _startUnoconvListener(){
+    function _startUnoconvListener() {
         var deferred = q.defer();
 
         // Get unoconv PID
@@ -32,12 +32,8 @@ module.exports = function() {
 
                     // Start the unoconv listener
                     command = 'unoconv --listener &';
-                    //command = 'unoconv';
-                    console.log(command);
-//                    exec(command, function(err, stdout, stderr) {
-//                        console.log('HERE');
-
                     var unoconv = spawn('unoconv', ['--listener'], ['&']);
+
                         // Make sure unoconv is running
                         command = 'ps ax | grep unoconv | grep -v grep | awk \'{print $1}\''
                         exec(command, function(err, stdout, stderr) {
@@ -48,14 +44,42 @@ module.exports = function() {
                               deferred.reject('unoconv not started');
                             }
                           });
-//                      });
                   });
               });
           });
 
         return deferred.promise;
-    };
+      };
     exports.startUnoconvListener = _startUnoconvListener;
+
+    /**
+     * See if the unoconv listener is running.
+     * If not, execute
+     *
+     * @returns promise
+     */
+    function _checkUnoconv() {
+        var deferred = q.defer();
+
+        var command = 'ps ax | grep unoconv | grep -v grep | awk \'{print $1}\''
+        exec(command, function(err, stdout, stderr) {
+            if (stdout) {
+              deferred.resolve();
+            }
+            else {
+              _startUnoconvListener().
+                then(function() {
+                    deferred.resolve();
+                  }).
+                catch(function(err) {
+                    deferred.reject('checkUnoconv: ' + err);
+                  });
+            }
+        });
+
+        return deferred.promise;
+      };
+    exports.checkUnoconv = _checkUnoconv;
 
     /**
      * Convert the given document to text
@@ -94,7 +118,6 @@ module.exports = function() {
                 case 'docx':
                 case 'odt':
                 case 'rtf':
-    
                     command = 'unoconv --doctype=document --format=text --output=' + tmpPath + ' ' + path;
                     break;
                 default:
