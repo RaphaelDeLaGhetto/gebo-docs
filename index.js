@@ -100,7 +100,8 @@ module.exports = function() {
      */
     function _convertToText(path) {
         var deferred = q.defer();
-    
+	path = _sanitizePath(path);    
+
         _checkUnoconv().
             then(function() {
                 tmp.tmpName(function(err, tmpPath) {
@@ -188,6 +189,7 @@ module.exports = function() {
      */
     function _convertToXml(path) {
         var deferred = q.defer();
+	path = _sanitizePath(path);    
 
         _checkUnoconv().
             then(function() { 
@@ -260,5 +262,30 @@ module.exports = function() {
       };
     exports.convertToXml = _convertToXml;
     
+    /**
+     * The text/XML conversion programs don't like spaces
+     * or brackets in their pathnames (from what's been seen
+     * so far).
+     *
+     * @param String
+     *
+     * @return String
+     */
+    function _sanitizePath(path) {
+
+	// Escape brackets
+	path = path.replace(/\(/g, '\\(');
+	path = path.replace(/\)/g, '\\)');
+
+	// Escape spaces
+	path = path.replace(/ /g, '\\ ');
+
+	// Reverse double escapes
+	path = path.replace(/\\\\/g, '\\');
+
+	return path;
+      };
+    exports.sanitizePath = _sanitizePath;
+
     return exports;
   }();

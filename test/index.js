@@ -479,10 +479,56 @@ exports.convertToXml = {
 };
 
 /**
+ * sanitizePath
+ */
+exports.sanitizePath = {
+	
+    'Returns the same string when there\'s nothing to escape': function(test) {
+	test.expect(1);
+	var sanitized = doc.sanitizePath('/path/to/some/file.txt');
+	test.equal(sanitized, '/path/to/some/file.txt');
+	test.done();
+    },
+
+    'Escape brackets': function(test) {
+	test.expect(2);
+	var sanitized = doc.sanitizePath('/path/to/some/file(1).txt');
+	test.equal(sanitized, '/path/to/some/file\\(1\\).txt');
+	sanitized = doc.sanitizePath('/path/to/some/file(1)(2).txt');
+	test.equal(sanitized, '/path/to/some/file\\(1\\)\\(2\\).txt');
+	test.done();
+    },	
+
+    'Escape spaces': function(test) {
+	test.expect(2);
+	var sanitized = doc.sanitizePath('/path/to/some file.txt');
+	test.equal(sanitized, '/path/to/some\\ file.txt');
+	sanitized = doc.sanitizePath('/path to some file.txt');
+	test.equal(sanitized, '/path\\ to\\ some\\ file.txt');
+	test.done();
+    },
+
+    'Escape brackets and spaces': function(test) {
+	test.expect(2);
+	var sanitized = doc.sanitizePath('/path/to/some file(1).txt');
+	test.equal(sanitized, '/path/to/some\\ file\\(1\\).txt');
+	sanitized = doc.sanitizePath('/path to some file(1)(2).txt');
+	test.equal(sanitized, '/path\\ to\\ some\\ file\\(1\\)\\(2\\).txt');
+	test.done();
+    },
+	
+    'Should not double sanitize': function(test) {
+	test.expect(2);
+	var sanitized = doc.sanitizePath('/path to some file(1)(2).txt');
+	test.equal(sanitized, '/path\\ to\\ some\\ file\\(1\\)\\(2\\).txt');
+	sanitized = doc.sanitizePath(sanitized);
+	test.equal(sanitized, '/path\\ to\\ some\\ file\\(1\\)\\(2\\).txt');
+	test.done();
+    },
+};
+
+/**
  * startUnoconvListener
- *
- * This test is placed here so that a listener
- * will be running for the subsequent tests
  */
 exports.startUnoconvListener = {
 
@@ -602,3 +648,4 @@ exports.checkUnoconv = {
               });
     },
 };
+
