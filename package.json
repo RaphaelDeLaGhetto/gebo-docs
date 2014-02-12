@@ -1,6 +1,6 @@
 {
   "name": "gebo-docs",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A gebo-server module for document-to-text conversions",
   "main": "index.js",
   "scripts": {
