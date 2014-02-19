@@ -133,7 +133,12 @@ module.exports = function() {
                             skip = true;
                             break;
                         case 'rtf':
-                            command = 'unoconv --doctype=document --format=text --output=' + tmpPath + ' ' + path;
+			    // 2014-2-19
+			    // From neuromancer, 2011-06-24
+			    // https://bugs.launchpad.net/ubuntu/+source/unrtf/+bug/489128
+			    command = 'unrtf --text --nopict ' + path + ' | awk \'NR == 1, /-----------------/ { next } { print }\''; 
+                            skip = true
+//                            command = 'unoconv --doctype=document --format=text --output=' + tmpPath + ' ' + path;
                             break;
                         default:
                             command = 'cat ' + path;
