@@ -121,6 +121,9 @@ module.exports = function() {
                             skip = true;
                             break;
                         case 'doc':
+			    command = 'catdoc -w ' + path;			    
+                            skip = true;
+                            break;
                         case 'docx':
                         case 'odt':
                         case 'rtf':
