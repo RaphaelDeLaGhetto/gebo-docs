@@ -125,6 +125,9 @@ module.exports = function() {
                             skip = true;
                             break;
                         case 'docx':
+			    command = 'docx2txt ' + path + ' -';			    
+                            skip = true;
+                            break;
                         case 'odt':
                         case 'rtf':
                             command = 'unoconv --doctype=document --format=text --output=' + tmpPath + ' ' + path;

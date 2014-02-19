@@ -47,7 +47,7 @@ exports.convertToText = {
         test.expect(1);
         doc.convertToText('test/docs/docx.docx').
             then(function(text) {
-                    test.equal(text, 'This is supposed to be a Microsoft docx. ' + 
+                    test.equal(text, '\rThis is supposed to be a Microsoft docx. ' + 
                                      'It was created with Google Docs.\n');
                     test.done();
               }).
@@ -65,7 +65,7 @@ exports.convertToText = {
 
         doc.convertToText('test/docs/docx.docx').
             then(function(text) {
-                    test.equal(text, 'This is supposed to be a Microsoft docx. ' +
+                    test.equal(text, '\rThis is supposed to be a Microsoft docx. ' +
                                      'It was created with Google Docs.\n');
                     test.equal(count, fs.readdirSync('/tmp').length);
                     test.done();
