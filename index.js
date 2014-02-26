@@ -102,8 +102,8 @@ module.exports = function() {
         var deferred = q.defer();
 	path = _sanitizePath(path);    
 
-        _checkUnoconv().
-            then(function() {
+//        _checkUnoconv().
+//            then(function() {
                 tmp.tmpName(function(err, tmpPath) {
                     if (err) {
                       deferred.reject(err);
@@ -183,10 +183,10 @@ module.exports = function() {
                         });
                     }
                   });
-          }).
-        catch(function(err) {
-            deferred.reject(err);
-          });
+//          }).
+//        catch(function(err) {
+//            deferred.reject(err);
+//          });
     
         return deferred.promise;
       };
