@@ -101,6 +101,7 @@ sudo cp /usr/local/lib/libpoppler.so.44 /usr/lib/
 ## Et al
 
 ```
+sudo apt-get install unzip
 sudo apt-get install unrtf
 sudo apt-get install odt2txt
 sudo apt-get install docx2txt
