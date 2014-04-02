@@ -16,7 +16,7 @@ module.exports = function(root) {
      * gebo.json configuration file.
      */
     if(!root) {
-      root = __dirname;
+      root = './';
     }
           
     /**
