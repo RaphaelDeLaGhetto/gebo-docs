@@ -4,9 +4,25 @@ var q = require('q'),
     rimraf = require('rimraf'),
     tmp = require('tmp'),
     exec = require('child_process').exec,
-    spawn = require('child_process').spawn;
+    spawn = require('child_process').spawn,
+    nconf = require('nconf'),
+    sprintf = require('sprintf-js').sprintf;
 
-module.exports = function() {
+module.exports = function(root) {
+
+    /**
+     * The gebo's root directory must be
+     * specified in order to read a custom
+     * gebo.json configuration file.
+     */
+    if(!root) {
+      root = __dirname;
+    }
+          
+    /**
+     * Load gebo configurations
+     */
+    nconf.file({ file: root + '/gebo-docs.json' });
 
     /**
      * Start an unoconv listener
@@ -100,93 +116,39 @@ module.exports = function() {
      */
     function _convertToText(path) {
         var deferred = q.defer();
-	path = _sanitizePath(path);    
+        path = _sanitizePath(path);    
 
-//        _checkUnoconv().
-//            then(function() {
-                tmp.tmpName(function(err, tmpPath) {
-                    if (err) {
-                      deferred.reject(err);
-                    }
+        tmp.tmpName(function(err, tmpPath) {
+            if (err) {
+              deferred.reject(err);
+            }
+        
+            // We're going by the file extension, for better
+            // or for worse
+            var extension = path.split('.').pop().toLowerCase();
+
+            var command = sprintf(nconf.get(extension), path);
+
+            // If no file extension found
+            if (!command) {
+              command = sprintf(nconf.get('default'), path);
+            }
             
-                    // We're going by the file extension, for better
-                    // or for worse
-                    var extension = path.split('.').pop().toLowerCase();
-                    var command;
-                    var skip = false;
-                
-                    switch(extension) {
-                        case 'pdf':
-                            command = 'pdftotext ' + path + ' -';
-                            skip = true;
-                            break;
-                        case 'doc':
-			    command = 'catdoc -w ' + path;			    
-                            skip = true;
-                            break;
-                        case 'docx':
-			    command = 'docx2txt ' + path + ' -';			    
-                            skip = true;
-                            break;
-                        case 'odt':
-			    command = 'odt2txt --width=-1 ' + path;			    
-                            skip = true;
-                            break;
-                        case 'rtf':
-			    // 2014-2-19
-			    // From neuromancer, 2011-06-24
-			    // https://bugs.launchpad.net/ubuntu/+source/unrtf/+bug/489128
-			    command = 'unrtf --text --nopict ' + path + ' | awk \'NR == 1, /-----------------/ { next } { print }\''; 
-                            skip = true
-//                            command = 'unoconv --doctype=document --format=text --output=' + tmpPath + ' ' + path;
-                            break;
-                        default:
-                            command = 'cat ' + path;
-                            skip = true;
-                            break;
-                    }
-                
-                    if (command) {
-                      // Write the converted document to a temporary file
-                      exec(command, function(err, stdout, stderr) {
-                          if (err) {
-                            deferred.reject(err);
-                          }
-                          else {
-                            if (skip) {
-                              deferred.resolve(stdout);
-                            } 
-                            else {
-                              // Get the contents of the converted file
-                              var filename = path.split('/').pop().split('.'); 
-                              filename.pop();
-                              filename = filename.join('.') + '.txt';
-            
-                              exec('cat ' + tmpPath + '/' + filename,
-                                function(err, stdout, stderr) {
-                                  if (err) {
-                                    deferred.reject(err);
-                                  }
-                                  else {
-                                    rimraf(tmpPath, function(err) {
-                                      if (err) {
-                                        deferred.reject(err);
-                                      }
-                                      else {
-                                        deferred.resolve(stdout);
-                                      }
-                                    });
-                                  }
-                                });
-                            }
-                          }
-                        });
-                    }
-                  });
-//          }).
-//        catch(function(err) {
-//            deferred.reject(err);
-//          });
+            // If default command not set in gebo-docs.json
+            if (!command) {
+              command = 'cat ' + path;
+            }
+ 
+            // Write the converted document to a temporary file
+            exec(command, function(err, stdout, stderr) {
+                if (err) {
+                  deferred.reject(err);
+                }
+                else {
+                  deferred.resolve(stdout);
+                }
+              });
+          });
     
         return deferred.promise;
       };
@@ -203,7 +165,7 @@ module.exports = function() {
      */
     function _convertToXml(path) {
         var deferred = q.defer();
-	path = _sanitizePath(path);    
+	    path = _sanitizePath(path);    
 
         _checkUnoconv().
             then(function() { 
