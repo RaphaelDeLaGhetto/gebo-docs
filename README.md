@@ -98,13 +98,25 @@ Run:
 sudo cp /usr/local/lib/libpoppler.so.44 /usr/lib/
 ```
 
+## docx2txt
+
+Download the source and install manually from here: [http://sourceforge.net/projects/docx2txt/]
+
+```
+sudo apt-get install unzip
+tar xvfz docx2txt-1.2.tgz
+cd docx2txt-1.2/
+sudo make
+cd /usr/local/bin
+sudo cp docx2txt.pl docx2txt
+```
+
 ## Et al
 
 ```
 sudo apt-get install unzip
 sudo apt-get install unrtf
 sudo apt-get install odt2txt
-sudo apt-get install docx2txt
 sudo apt-get install catdoc
 ```
 
