@@ -1,0 +1,8 @@
+{
+    "pdf":"pdftotext %s -",
+    "doc":"catdoc -w %s",
+    "docx":"docx2txt %s -",
+    "odt":"odt2txt --width=-1 %s",
+    "rtf":"unrtf --text --nopict %s | awk 'NR == 1, /-----------------/ { next } { print }'",
+    "default":"cat %s"
+}
