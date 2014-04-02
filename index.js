@@ -16,13 +16,15 @@ module.exports = function(root) {
      * gebo.json configuration file.
      */
     if(!root) {
-      root = './';
+      root = __dirname;
     }
           
     /**
      * Load gebo configurations
+     *
+     * Loading the file in this scope doesn't work for some reason. Why?
      */
-    nconf.file({ file: root + '/gebo-docs.json' });
+    //nconf.file({ file: root + '/gebo-docs.json' });
 
     /**
      * Start an unoconv listener
@@ -117,6 +119,9 @@ module.exports = function(root) {
     function _convertToText(path) {
         var deferred = q.defer();
         path = _sanitizePath(path);    
+
+
+        nconf.file({ file: root + '/gebo-docs.json' });
 
         tmp.tmpName(function(err, tmpPath) {
             if (err) {
