@@ -1,4 +1,4 @@
-var doc = require('..'),
+var doc = require('..')(),
     fs = require('fs'),
     rimraf = require('rimraf'),
     exec = require('child_process').exec;

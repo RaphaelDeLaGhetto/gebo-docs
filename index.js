@@ -269,4 +269,4 @@ module.exports = function(root) {
     exports.sanitizePath = _sanitizePath;
 
     return exports;
-  }();
+  };
