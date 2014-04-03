@@ -108,10 +108,11 @@ npm install gebo-docs
 Do this if you're happy with the default configuration:
 
 ```
-var doc = require('gebo-docs');
+var doc = require('gebo-docs')();
 ```
 
-Do this if you set your own third-party dependencys in gebo-docs.json:
+Do this if you set your own third-party dependencies in gebo-docs.json (copy the file
+provided into the desired directory and modify there):
 
 ```
 var doc = require('gebo-docs')('/directory/in/which/config/file/is/contained');
