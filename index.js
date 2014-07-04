@@ -8,16 +8,16 @@ var q = require('q'),
     nconf = require('nconf'),
     sprintf = require('sprintf-js').sprintf;
 
-module.exports = function(root) {
+module.exports = function() {//(root) {
 
     /**
      * The gebo's root directory must be
      * specified in order to read a custom
      * gebo.json configuration file.
      */
-    if(!root) {
-      root = __dirname;
-    }
+//    if(!root) {
+//      root = __dirname;
+//    }
           
     /**
      * Load gebo configurations
@@ -121,7 +121,8 @@ module.exports = function(root) {
         path = _sanitizePath(path);    
 
 
-        nconf.file({ file: root + '/gebo-docs.json' });
+        //nconf.file({ file: root + '/gebo-docs.json' });
+        nconf.file({ file: './gebo-docs.json' });
 
         tmp.tmpName(function(err, tmpPath) {
             if (err) {
@@ -130,35 +131,88 @@ module.exports = function(root) {
         
             // We're going by the file extension, for better
             // or for worse
-            var extension = path.split('.').pop().toLowerCase();
+            _getExtension(path).
+                then(function(extension) {
 
-            var command = sprintf(nconf.get(extension), path);
-
-            // If no file extension found
-            if (!command) {
-              command = sprintf(nconf.get('default'), path);
-            }
-            
-            // If default command not set in gebo-docs.json
-            if (!command) {
-              command = 'cat ' + path;
-            }
- 
-            // Write the converted document to a temporary file
-            exec(command, function(err, stdout, stderr) {
-                if (err) {
-                  deferred.reject(err);
-                }
-                else {
-                  deferred.resolve(stdout);
-                }
-              });
+                    var command = sprintf(nconf.get(extension), path);
+        
+                    // If no file extension found
+                    if (!command) {
+                      command = sprintf(nconf.get('default'), path);
+                    }
+                    
+                    // If default command not set in gebo-docs.json
+                    if (!command) {
+                      command = 'cat ' + path;
+                    }
+         
+                    // Write the converted document to a temporary file
+                    exec(command, function(err, stdout, stderr) {
+                        if (err) {
+                          deferred.reject(err);
+                        }
+                        else {
+                          deferred.resolve(stdout);
+                        }
+                      });
+                  }).
+                catch(function(err) {
+                    deferred.reject(err);
+                  });
           });
     
         return deferred.promise;
       };
     exports.convertToText = _convertToText;
     
+    /**
+     * Get the file's extension if it exists. Guess and
+     * return the file type otherwise.
+     *
+     * @param string
+     *
+     * @return string
+     */
+    function _getExtension(path) {
+        var deferred = q.defer();
+
+        // Get the file extension
+        var pathParts = path.split('.');
+
+        if (pathParts.length > 1) {
+          deferred.resolve(pathParts.pop().toLowerCase());
+        }
+        else {
+          // This file has no extension. Try to guess the file type.
+          exec('file --mime-type ' + path, function(err, stdout, stderr) {
+              if (err) {
+                deferred.reject(err);
+              }
+              else {
+                var type = stdout.trim().split('/').pop().toLowerCase();
+                switch (type) {
+                    case 'msword':
+                        type = 'doc';
+                        break;
+                    case 'zip':
+                        type = 'docx';
+                        break;
+                    case 'vnd.oasis.opendocument.text':
+                        type = 'odt';
+                        break;
+                    case 'plain':
+                        type = 'txt';
+                        break;
+                };
+                deferred.resolve(type);
+              }
+            });
+        }
+
+        return deferred.promise;
+      };
+    exports.getExtension = _getExtension;
+
     /**
      * Convert the document to XML to extract formatting information
      *
@@ -269,4 +323,4 @@ module.exports = function(root) {
     exports.sanitizePath = _sanitizePath;
 
     return exports;
-  };
+  }();

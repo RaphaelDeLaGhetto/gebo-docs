@@ -1,4 +1,4 @@
-var doc = require('..')(),
+var doc = require('..'),
     fs = require('fs'),
     rimraf = require('rimraf'),
     exec = require('child_process').exec;
@@ -11,6 +11,22 @@ exports.convertToText = {
     'Return text when given a Microsoft doc': function(test) {
         test.expect(1);
         doc.convertToText('test/docs/doc.doc').
+            then(function(text) {
+                    test.equal(text, 'This is supposed to be a Microsoft Word doc. ' +
+                                     'It was created with LibreOffice.\n');
+                    test.done();
+              }).
+            catch(function(err) {
+                    console.log('err');
+                    console.log(err);
+                    test.ok(false, err);
+                    test.done();
+              });
+    },
+
+    'Return text when given a Microsoft doc with no file extension': function(test) {
+        test.expect(1);
+        doc.convertToText('test/docs/doc').
             then(function(text) {
                     test.equal(text, 'This is supposed to be a Microsoft Word doc. ' +
                                      'It was created with LibreOffice.\n');
@@ -59,6 +75,22 @@ exports.convertToText = {
               });
     },
 
+    'Return text when given a Microsoft docx with no file extension': function(test) {
+        test.expect(1);
+        doc.convertToText('test/docs/docx').
+            then(function(text) {
+                    test.equal(text, '\rThis is supposed to be a Microsoft docx. ' + 
+                                     'It was created with Google Docs.\n');
+                    test.done();
+              }).
+            catch(function(err) {
+                    console.log('err');
+                    console.log(err);
+                    test.ok(false, err);
+                    test.done();
+              });
+    },
+
     'Delete temp file containing converted Microsoft DOCX text': function(test) {
         test.expect(2);
         var count = fs.readdirSync('/tmp').length;
@@ -81,6 +113,21 @@ exports.convertToText = {
     'Return text when given an OpenOffice ODT': function(test) {
         test.expect(1);
         doc.convertToText('test/docs/odt.odt').
+            then(function(text) {
+                    test.equal(text, 'This is an OpenOffice odt document. ' +
+                                     'It was created with LibreOffice.\n');
+                    test.done();
+              }).
+            catch(function(err) {
+                    console.log(err);
+                    test.ok(false, err);
+                    test.done();
+              });
+    },
+
+    'Return text when given an OpenOffice ODT with no extension': function(test) {
+        test.expect(1);
+        doc.convertToText('test/docs/odt').
             then(function(text) {
                     test.equal(text, 'This is an OpenOffice odt document. ' +
                                      'It was created with LibreOffice.\n');
@@ -126,9 +173,37 @@ exports.convertToText = {
               });
     },
 
+    'Return text when given a Google Doc PDF with no extension': function(test) {
+        test.expect(1);
+        doc.convertToText('test/docs/pdf').
+            then(function(text) {
+                    test.equal(text, 'This is a pdf. It was created with Google Docs.\n\n\f');
+                    test.done();
+              }).
+            catch(function(err) {
+                    console.log(err);
+                    test.ok(false, err);
+                    test.done();
+              });
+    },
+
     'Return text when given a LibreOffice rtf': function(test) {
         test.expect(1);
         doc.convertToText('test/docs/rtf.rtf').
+            then(function(text) {
+                    test.equal(text, 'This is an rtf document. It was created with LibreOffice.\n');
+                    test.done();
+              }).
+            catch(function(err) {
+                    console.log(err);
+                    test.ok(false, err);
+                    test.done();
+              });
+    },
+
+    'Return text when given a LibreOffice rtf with no extension': function(test) {
+        test.expect(1);
+        doc.convertToText('test/docs/rtf').
             then(function(text) {
                     test.equal(text, 'This is an rtf document. It was created with LibreOffice.\n');
                     test.done();
@@ -152,8 +227,6 @@ exports.convertToText = {
                     test.done();
               }).
             catch(function(err) {
-                    console.log('err');
-                    console.log(err);
                     test.ok(false, err);
                     test.done();
               });
@@ -167,9 +240,118 @@ exports.convertToText = {
                     test.done();
               }).
             catch(function(err) {
-                    console.log(err);
                     test.ok(false, err);
                     test.done();
+              });
+    },
+
+    'Return text when given a txt document with no extension': function(test) {
+        test.expect(1);
+        doc.convertToText('test/docs/txt').
+            then(function(text) {
+                    test.equal(text, 'This is a txt document. It was created with VIM.\n');
+                    test.done();
+              }).
+            catch(function(err) {
+                    test.ok(false, err);
+                    test.done();
+              });
+    },
+};
+
+/**
+ * getExtension
+ */
+exports.getExtension = {
+
+    'Return the text behind the last period in a string': function(test) {
+        test.expect(1);
+        doc.getExtension('/some/../weird.looking/path/somefile.xyz').
+            then(function(extension) {
+                test.equal(extension, 'xyz');
+                test.done();
+              }).
+            catch(function(err) {
+                test.ok(false, err);
+                test.done();
+              });
+    },
+
+    'Return \'doc\' when given a DOC with no extensions': function(test) {
+        test.expect(1);
+        doc.getExtension('test/docs/doc').
+            then(function(extension) {
+                test.equal(extension, 'doc');
+                test.done();
+              }).
+            catch(function(err) {
+                test.ok(false, err);
+                test.done();
+              });
+    },
+
+    'Return \'docx\' when given a DOCX with no extensions': function(test) {
+        test.expect(1);
+        doc.getExtension('test/docs/docx').
+            then(function(extension) {
+                test.equal(extension, 'docx');
+                test.done();
+              }).
+            catch(function(err) {
+                test.ok(false, err);
+                test.done();
+              });
+    },
+
+    'Return \'odt\' when given an ODT with no extensions': function(test) {
+        test.expect(1);
+        doc.getExtension('test/docs/odt').
+            then(function(extension) {
+                test.equal(extension, 'odt');
+                test.done();
+              }).
+            catch(function(err) {
+                test.ok(false, err);
+                test.done();
+              });
+    },
+
+    'Return \'pdf\' when given a PDF with no extensions': function(test) {
+        test.expect(1);
+        doc.getExtension('test/docs/pdf').
+            then(function(extension) {
+                test.equal(extension, 'pdf');
+                test.done();
+              }).
+            catch(function(err) {
+                test.ok(false, err);
+                test.done();
+              });
+    },
+
+    'Return \'rtf\' when given an RTF with no extensions': function(test) {
+        test.expect(1);
+        doc.getExtension('test/docs/rtf').
+            then(function(extension) {
+                test.equal(extension, 'rtf');
+                test.done();
+              }).
+            catch(function(err) {
+                test.ok(false, err);
+                test.done();
+              });
+    },
+
+    'Return \'txt\' when given a TXT with no extensions': function(test) {
+        test.expect(1);
+        doc.getExtension('test/docs/txt').
+            then(function(extension) {
+                test.equal(extension, 'txt');
+                test.done();
+              }).
+            catch(function(err) {
+                test.ok(false, err);
+                test.done();
               });
     },
 };
