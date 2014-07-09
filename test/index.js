@@ -257,6 +257,22 @@ exports.convertToText = {
                     test.done();
               });
     },
+
+    'Return error when given a DOC that thinks it\'s a PDF': function(test) {
+        test.expect(1);
+        doc.convertToText('test/docs/doc.pdf').
+            then(function(text) {
+                    test.ok(false, 'Shouldn\'t get here');
+                    test.done();
+              }).
+            catch(function(err) {
+                    console.log
+                    test.equal(err, 'Syntax Warning: May not be a PDF file (continuing anyway)\n' +
+                                    'Syntax Error: Couldn\'t find trailer dictionary\n' +
+                                    'Syntax Error: Couldn\'t read xref table\n');
+                    test.done();
+              });
+    },
 };
 
 /**

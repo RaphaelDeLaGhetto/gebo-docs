@@ -6,25 +6,12 @@ var q = require('q'),
     exec = require('child_process').exec,
     spawn = require('child_process').spawn,
     nconf = require('nconf'),
-    sprintf = require('sprintf-js').sprintf;
+    sprintf = require('sprintf-js').sprintf,
+    winston = require('winston');
 
-module.exports = function() {//(root) {
+module.exports = function() {
 
-    /**
-     * The gebo's root directory must be
-     * specified in order to read a custom
-     * gebo.json configuration file.
-     */
-//    if(!root) {
-//      root = __dirname;
-//    }
-          
-    /**
-     * Load gebo configurations
-     *
-     * Loading the file in this scope doesn't work for some reason. Why?
-     */
-    //nconf.file({ file: root + '/gebo-docs.json' });
+    var logger = new (winston.Logger)({ transports: [ new (winston.transports.Console)({ colorize: true }) ] });
 
     /**
      * Start an unoconv listener
@@ -148,7 +135,14 @@ module.exports = function() {//(root) {
          
                     // Write the converted document to a temporary file
                     exec(command, function(err, stdout, stderr) {
-                        if (err) {
+                        if (stderr) {
+                          logger.info('Command:', command);
+                          logger.error('stderr:', stderr);
+                          deferred.reject(stderr);
+                        }
+                        else if (err) {
+                          logger.info('Command:', command);
+                          logger.error(err);
                           deferred.reject(err);
                         }
                         else {
