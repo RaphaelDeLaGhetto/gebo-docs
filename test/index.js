@@ -24,6 +24,36 @@ exports.convertToText = {
               });
     },
 
+    /**
+     * 2014-7-14
+     * I discovered that antiword doesn't like hosted servers. By passing
+     * an environment variable, the associated problem disappears.
+     *
+     * This test is useless, except that it will remind me what it takes
+     * to get antiword working
+     */
+    'Return text when given a Microsoft doc with options': function(test) {
+        test.expect(1);
+
+        var environment = process.env;
+        environment.ANTIWORDHOME = '/usr/share/antiword';
+        var options = { env: environment };
+
+        doc.convertToText('test/docs/doc.doc', options).
+            then(function(text) {
+                    test.equal(text, 'This is supposed to be a Microsoft Word doc. ' +
+                                     'It was created with LibreOffice.\n');
+                    test.done();
+              }).
+            catch(function(err) {
+                    console.log('err');
+                    console.log(err);
+                    test.ok(false, err);
+                    test.done();
+              });
+    },
+
+
     'Return text when given a Microsoft doc with no file extension': function(test) {
         test.expect(1);
         doc.convertToText('test/docs/doc').

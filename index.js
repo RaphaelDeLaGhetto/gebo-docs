@@ -100,12 +100,17 @@ module.exports = function() {
      * have to be written to temporary file
      *
      * @param string
+     * @param options
      *
      * @return string
      */
-    function _convertToText(path) {
+    function _convertToText(path, options) {
         var deferred = q.defer();
         path = _sanitizePath(path);    
+
+        if (!options) {
+          options = {};
+        }
 
 
         //nconf.file({ file: root + '/gebo-docs.json' });
@@ -134,7 +139,7 @@ module.exports = function() {
                     }
          
                     // Write the converted document to a temporary file
-                    exec(command, function(err, stdout, stderr) {
+                    exec(command, options, function(err, stdout, stderr) {
                         if (stderr) {
                           logger.info('Command:', command);
                           logger.error('stderr:', stderr);
