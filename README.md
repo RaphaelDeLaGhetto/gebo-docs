@@ -1,3 +1,8 @@
+This module is no longer maintained
+===================================
+
+You'll like [gebo-text-converter](https://github.com/RaphaelDeLaGhetto/gebo-text-converter) better.
+
 gebo-docs
 =========
 
